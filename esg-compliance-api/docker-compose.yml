@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  oracle:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: esg-oracle
+    environment:
+      ORACLE_PASSWORD: oracle
+      ORACLE_DATABASE: ORCL
+    ports:
+      - "1521:1521"
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  app:
+    build: .
+    container_name: esg-compliance-api
+    depends_on:
+      oracle:
+        condition: service_healthy
+    environment:
+      ORACLE_HOST: oracle
+      ORACLE_PORT: 1521
+      ORACLE_SID: ORCL
+      ORACLE_USER: system
+      ORACLE_PASSWORD: oracle
+      JWT_SECRET: esg-compliance-secret-key-muito-longa-para-seguranca-2024
+    ports:
+      - "8080:8080"
+    restart: on-failure
+
+volumes:
+  oracle-data:
