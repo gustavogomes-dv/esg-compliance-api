@@ -4,6 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.util.Properties;
 
+
+//APLICAÇÃO ESTAVA DANDO MUITO ERRO, ENTÃO PEDI AJUDA AO GEMINI PARA SOLUÇÃO DE PROBLEMA, ME PROPONDO, ADICIONAR ESSAS props. PARA FACILITAR LEITURA DE CÓDIGO E ACESSO AO DATASOURCE
 @SpringBootApplication
 public class EsgComplianceApplication {
 
@@ -23,6 +25,8 @@ public class EsgComplianceApplication {
         props.put("spring.flyway.baseline-on-migrate", "true");
         props.put("spring.datasource.hikari.maximum-pool-size", "2");
         props.put("spring.datasource.hikari.minimum-idle", "1");
+        props.put("spring.flyway.enabled", "false");
+        props.put("spring.jpa.hibernate.ddl-auto", "create");
 
         app.setDefaultProperties(props);
         app.run(args);
