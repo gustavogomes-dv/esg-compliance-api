@@ -1,2 +1,5 @@
 # Project exclude paths
 /esg-compliance-api/${project.build.directory}/classes/
+.env
+target/
+.idea/

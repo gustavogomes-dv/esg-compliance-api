@@ -1,0 +1,53 @@
+
+
+services:
+  oracle:
+    # Aqui eu uso o Oracle Free 23, que cria o usuário da aplicação sozinho
+    image: gvenzl/oracle-free:23-slim
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD:?defina ORACLE_PASSWORD no .env}
+      APP_USER: ${ORACLE_APP_USER:-esg}
+      APP_USER_PASSWORD: ${ORACLE_APP_PASSWORD:?defina ORACLE_APP_PASSWORD no .env}
+    ports:
+      # Aqui eu publico o banco só no localhost para ele não ficar exposto na internet
+      - "127.0.0.1:${ORACLE_PORT:-1521}:1521"
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+    networks: [ esg-net ]
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh" ]
+      interval: 20s
+      timeout: 10s
+      retries: 20
+      start_period: 90s
+    restart: unless-stopped
+
+  app:
+    build: .
+    # Aqui eu deixo o pipeline escolher a imagem pela variável APP_IMAGE; localmente uso a imagem construída
+    image: ${APP_IMAGE:-esg-compliance-api:local}
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@//oracle:1521/FREEPDB1
+      SPRING_DATASOURCE_USERNAME: ${ORACLE_APP_USER:-esg}
+      SPRING_DATASOURCE_PASSWORD: ${ORACLE_APP_PASSWORD:?defina ORACLE_APP_PASSWORD no .env}
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    depends_on:
+      oracle:
+        condition: service_healthy
+    networks: [ esg-net ]
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/actuator/health || exit 1" ]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+
+networks:
+  esg-net:
+    driver: bridge
+
+volumes:
+  oracle-data:

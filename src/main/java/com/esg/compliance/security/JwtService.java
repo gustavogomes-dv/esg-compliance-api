@@ -2,9 +2,11 @@ package com.esg.compliance.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -13,8 +15,14 @@ import java.util.Map;
 @Service
 public class JwtService {
 
-    private static final String SECRET = "esg-compliance-secret-key-muito-longa-para-seguranca-2024";
-    private static final long EXPIRATION = 86400000L;
+    private final String secret;
+    private final long expiration;
+
+    public JwtService(@Value("${jwt.secret}") String secret,
+                      @Value("${jwt.expiration}") long expiration) {
+        this.secret = secret;
+        this.expiration = expiration;
+    }
 
     public String generateToken(UserDetails userDetails) {
         return generateToken(new HashMap<>(), userDetails);
@@ -25,7 +33,7 @@ public class JwtService {
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -51,6 +59,6 @@ public class JwtService {
     }
 
     private Key getSignKey() {
-        return Keys.hmacShaKeyFor(SECRET.getBytes());
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 }
