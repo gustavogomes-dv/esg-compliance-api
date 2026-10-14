@@ -1,0 +1,128 @@
+
+# Aqui eu defino o pipeline completo: build, testes, imagem Docker, deploy em staging e deploy em producao.
+name: CI/CD ESG Compliance API
+
+on:
+  # Aqui eu rodo o pipeline quando envio codigo para a branch principal
+  push:
+    branches: [main, master]
+  # Aqui eu rodo so o build e os testes quando abro um pull request
+  pull_request:
+    branches: [main, master]
+  # Aqui eu permito rodar o pipeline na mao pela aba Actions do GitHub
+  workflow_dispatch:
+
+# Aqui eu dou ao pipeline so as permissoes que ele precisa: ler o codigo e publicar a imagem no GHCR
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # Etapa 1: compilo o projeto e rodo os testes automatizados
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      # Aqui eu baixo o codigo do repositorio para a maquina do pipeline
+      - name: Baixar codigo
+        uses: actions/checkout@v4
+
+      # Aqui eu instalo o Java 24 (o mesmo do pom.xml) e guardo o cache do Maven para o build ficar mais rapido
+      - name: Configurar Java 24
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '24'
+          cache: maven
+
+      # Aqui eu compilo e executo todos os testes; se algum falhar, o pipeline para
+      - name: Build e testes
+        run: mvn -B verify
+
+  # Etapa 2: construo a imagem Docker e publico no GitHub Container Registry
+  image:
+    needs: build-test
+    # Aqui eu so publico imagem quando e push (nao em pull request)
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      imagem: ${{ steps.nome.outputs.imagem }}
+    steps:
+      - name: Baixar codigo
+        uses: actions/checkout@v4
+
+      # Aqui eu monto o nome da imagem em letras minusculas, porque o GHCR nao aceita maiusculas
+      - name: Definir nome da imagem
+        id: nome
+        run: echo "imagem=ghcr.io/${GITHUB_REPOSITORY,,}:sha-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      # Aqui eu entro no GHCR usando o token que o proprio GitHub fornece ao pipeline
+      - name: Login no GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Aqui eu construo a imagem pelo Dockerfile e envio para o GHCR com a tag do commit
+      - name: Build e publicar imagem
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.nome.outputs.imagem }}
+
+  # Etapa 3: deploy automatico em staging
+  deploy-staging:
+    needs: image
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    # Aqui eu uso o environment staging, que tem os secrets do servidor de staging
+    environment: staging
+    steps:
+      - name: Deploy em staging via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd "${{ secrets.DEPLOY_PATH }}"
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+            export APP_IMAGE="${{ needs.image.outputs.imagem }}"
+            docker compose pull app
+            docker compose up -d app
+            tentativa=0
+            until [ "$(docker inspect --format='{{.State.Health.Status}}' "$(docker compose ps -q app)")" = "healthy" ]; do
+              tentativa=$((tentativa + 1))
+              if [ "$tentativa" -ge 30 ]; then docker compose logs app; exit 1; fi
+              sleep 10
+            done
+            docker image prune -f
+
+  # Etapa 4: deploy em producao, so depois do staging dar certo
+  deploy-production:
+    needs: [image, deploy-staging]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    # Aqui eu uso o environment production, onde configuro a aprovacao manual no GitHub
+    environment: production
+    steps:
+      - name: Deploy em producao via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd "${{ secrets.DEPLOY_PATH }}"
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+            export APP_IMAGE="${{ needs.image.outputs.imagem }}"
+            docker compose pull app
+            docker compose up -d app
+            tentativa=0
+            until [ "$(docker inspect --format='{{.State.Health.Status}}' "$(docker compose ps -q app)")" = "healthy" ]; do
+              tentativa=$((tentativa + 1))
+              if [ "$tentativa" -ge 30 ]; then docker compose logs app; exit 1; fi
+              sleep 10
+            done
+            docker image prune -f

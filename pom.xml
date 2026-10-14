@@ -78,6 +78,11 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Eu adiciono o actuator para ter o endpoint /actuator/health, que uso no healthcheck do Docker e para validar o deploy -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
