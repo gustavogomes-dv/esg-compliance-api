@@ -203,12 +203,21 @@ Os arquivos ficam na pasta `docs/prints/`.
 - GitHub Container Registry (GHCR)
 - Microsoft Azure (VM Ubuntu 24.04)
 
+[x<img width="1907" height="1002" alt="deploy-production" src="https://github.com/user-attachments/assets/8e251032-147a-4137-bfd4-1f443aa77a23" />
+<img width="1915" height="1012" alt="deploy-staging" src="https://github.com/user-attachments/assets/d7635a06-3aca-4ba6-9dff-60dcb62cc2ca" />
+<img width="1877" height="302" alt="docker compose ps1" src="https://github.com/user-attachments/assets/f2de14e1-734a-447d-9362-532787c10b93" />
+<img width="1917" height="1015" alt="docker local" src="https://github.com/user-attachments/assets/76a17cb6-95a7-44c0-8d16-754da6d4b124" />
+<img width="1912" height="1007" alt="build e tests" src="https://github.com/user-attachments/assets/d5bbcb3a-a1e0-4238-9e85-d02f081ff18b" />
+<img width="1910" height="1000" alt="docker compose ps " src="https://github.com/user-attachments/assets/f500c6ba-fb6f-4801-90f3-fa03b6154baf" />
+<img width="1916" height="1016" alt="teste-api" src="https://github.com/user-attachments/assets/d3bce900-9594-41f7-b984-2dc24532d473" />
+<img width="1911" height="1006" alt="porta 8080" src="https://github.com/user-attachments/assets/db451b9c-635f-4d40-b6fc-fe97fc22a16b" />
+
 ## Checklist de entrega
 
-- [ ] Arquivo .zip organizado
+- [x] Arquivo .zip organizado
 - [x] Dockerfile funcional
 - [x] docker-compose.yml
 - [x] Pipeline com build, teste e deploy
-- [ ] README com instruções e prints
-- [ ] Documentação técnica com evidências
+- [x] README com instruções e prints
+- [x] Documentação técnica com evidências
 - [x] Deploy em staging e produção
