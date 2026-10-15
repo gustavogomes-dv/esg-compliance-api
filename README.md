@@ -1,164 +1,214 @@
-# ESG Compliance API
+# Projeto - Cidades ESG Inteligentes
 
-API RESTful para **Governança e Compliance Ambiental** desenvolvida com Java 17 e Spring Boot 3.
+API REST de governança e compliance ambiental (ESG), feita com Spring Boot. Ela cadastra empresas, licenças ambientais, emissões de carbono e auditorias, e protege os endpoints com autenticação JWT.
 
-## Tema ESG
-**Governança e Compliance Ambiental** — Registro de conformidade com normas ambientais, monitoramento de emissões de carbono, controle de licenças ambientais e alertas para renovação.
+Nesta etapa do trabalho da fase "Navegando pelo mundo DevOps", a API ganhou:
 
----
+- Dockerfile com build em duas etapas
+- docker-compose com a aplicação e o banco Oracle
+- pipeline CI/CD no GitHub Actions (build, testes, imagem, staging e produção)
+- deploy em uma VM no Azure, com dois ambientes separados
 
-## Tecnologias
+**Integrante:** Gustavo (RM566105), FIAP, Análise e Desenvolvimento de Sistemas
 
-- Java 17
-- Spring Boot 3.2
-- Spring Security + JWT
-- Spring Data JPA
-- Oracle Database (via Docker)
-- Flyway (migrations)
-- Docker + Docker Compose
-- Bean Validation
-- Lombok
+## Como executar localmente com Docker
 
----
+Pré-requisito: Docker Desktop instalado e aberto.
 
-## Como rodar com Docker
+1. Clone o repositório e entre na pasta do projeto:
 
 ```bash
-# Clonar o repositório
-git clone https://github.com/seu-usuario/esg-compliance-api.git
+git clone https://github.com/gustavogomes-dv/esg-compliance-api.git
 cd esg-compliance-api
-
-# Subir Oracle + aplicação
-docker-compose up --build
 ```
 
-A API estará disponível em: `http://localhost:8080`
+2. Crie o arquivo `.env` a partir do modelo. No PowerShell:
 
----
+```powershell
+Copy-Item .env.example .env
+```
 
-## Como rodar localmente (sem Docker)
-
-Pré-requisitos: Java 17, Maven, Oracle rodando.
+No Linux ou macOS:
 
 ```bash
-# Configurar variáveis de ambiente
-export ORACLE_HOST=localhost
-export ORACLE_PORT=1521
-export ORACLE_SID=ORCL
-export ORACLE_USER=system
-export ORACLE_PASSWORD=oracle
-
-# Rodar
-mvn spring-boot:run
+cp .env.example .env
 ```
 
----
+3. Abra o `.env` e troque as senhas e o `JWT_SECRET` por valores seus. O `JWT_SECRET` precisa ter pelo menos 32 caracteres. O Compose recusa subir se alguma dessas variáveis estiver vazia.
 
-## Autenticação
+4. Suba os containers:
 
-A API usa JWT. Para acessar os endpoints protegidos:
-
-### 1. Login
-```http
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "email": "admin@esg.com",
-  "senha": "admin123"
-}
+```bash
+docker compose up --build -d
 ```
 
-Resposta:
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiJ9..."
-}
+5. Acompanhe até os dois serviços ficarem `healthy`. Na primeira vez o Oracle leva alguns minutos para iniciar:
+
+```bash
+docker compose ps
 ```
 
-### 2. Usar o token
-Adicione o header em todas as requisições:
+6. Teste a aplicação:
+
+```bash
+curl http://localhost:8080/actuator/health
 ```
-Authorization: Bearer <token>
+
+Resposta esperada: `{"status":"UP"}`
+
+Para parar tudo:
+
+```bash
+docker compose down
 ```
 
----
+Para apagar também os dados do banco, use `docker compose down -v`.
 
-## Endpoints
+### Variáveis do `.env`
 
-### Autenticação
-| Método | Endpoint | Descrição | Auth |
-|--------|----------|-----------|------|
-| POST | /api/auth/login | Realizar login | Não |
-| POST | /api/auth/registro | Registrar usuário | Não |
+| Variável | Para que serve |
+|---|---|
+| `APP_PORT` | Porta da API no host (padrão 8080) |
+| `ORACLE_PORT` | Porta do Oracle no host (padrão 1521) |
+| `ORACLE_PASSWORD` | Senha do administrador do Oracle |
+| `ORACLE_APP_USER` | Usuário que a aplicação usa no banco (`esg`) |
+| `ORACLE_APP_PASSWORD` | Senha do usuário da aplicação |
+| `JWT_SECRET` | Segredo usado para assinar os tokens JWT |
 
-### Empresas
-| Método | Endpoint | Descrição | Auth |
-|--------|----------|-----------|------|
-| GET | /api/empresas | Listar todas | Sim |
-| GET | /api/empresas/{id} | Buscar por ID | Sim |
-| POST | /api/empresas | Cadastrar empresa | Sim |
-| PUT | /api/empresas/{id} | Atualizar empresa | Sim |
-| DELETE | /api/empresas/{id} | Remover empresa | ADMIN |
+## Pipeline CI/CD
 
-### Licenças Ambientais
-| Método | Endpoint | Descrição | Auth |
-|--------|----------|-----------|------|
-| GET | /api/empresas/{id}/licencas | Listar por empresa | Sim |
-| GET | /api/licencas/{id} | Buscar por ID | Sim |
-| GET | /api/licencas/vencendo?dias=30 | Próximas do vencimento | Sim |
-| POST | /api/empresas/{id}/licencas | Cadastrar licença | Sim |
-| PUT | /api/licencas/{id} | Atualizar licença | Sim |
-| DELETE | /api/licencas/{id} | Remover licença | ADMIN |
+O pipeline está em `.github/workflows/ci-cd.yml` e usa GitHub Actions.
 
-### Emissões de Carbono
-| Método | Endpoint | Descrição | Auth |
-|--------|----------|-----------|------|
-| GET | /api/empresas/{id}/emissoes | Histórico por empresa | Sim |
-| GET | /api/emissoes/{id} | Buscar por ID | Sim |
-| GET | /api/empresas/{id}/emissoes/total | Total de emissões | Sim |
-| POST | /api/empresas/{id}/emissoes | Registrar emissão | Sim |
-| PUT | /api/emissoes/{id} | Atualizar emissão | Sim |
-| DELETE | /api/emissoes/{id} | Remover emissão | ADMIN |
+**Gatilhos**
 
-### Auditorias
-| Método | Endpoint | Descrição | Auth |
-|--------|----------|-----------|------|
-| GET | /api/empresas/{id}/auditorias | Listar por empresa | Sim |
-| GET | /api/auditorias/{id} | Buscar por ID | Sim |
-| POST | /api/empresas/{id}/auditorias | Registrar auditoria | Sim |
-| PUT | /api/auditorias/{id} | Atualizar auditoria | Sim |
-| DELETE | /api/auditorias/{id} | Remover auditoria | ADMIN |
+- `push` na `main` ou `master`: roda o pipeline inteiro
+- `pull_request`: roda só o build e os testes
+- `workflow_dispatch`: execução manual pela aba Actions
 
----
+**Jobs**
 
-## Usuários padrão (seed)
+| Ordem | Job | O que faz |
+|---|---|---|
+| 1 | `build-test` | Instala o Java 24, usa cache do Maven e roda `mvn -B verify` (compila e executa os testes JUnit) |
+| 2 | `image` | Constrói a imagem pelo Dockerfile e publica no GitHub Container Registry (GHCR) com a tag `sha-<commit>` |
+| 3 | `deploy-staging` | Conecta na VM por SSH, baixa a imagem nova, sobe a aplicação em `/opt/esg/staging` e espera o container ficar `healthy` |
+| 4 | `deploy-production` | Só roda depois do staging dar certo e depois da aprovação manual. Faz o mesmo deploy em `/opt/esg/production` |
 
-| Email | Senha | Papel |
-|-------|-------|-------|
-| admin@esg.com | admin123 | ADMIN |
-| analista@esg.com | user123 | USER |
+**Detalhes importantes**
 
----
+- Cada job só começa se o anterior terminou com sucesso. Se os testes falham, nada é publicado.
+- A produção usa o environment `production` do GitHub com **Required reviewers**, então alguém precisa aprovar antes do deploy.
+- Os dados do servidor ficam em secrets de cada environment (`DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, `DEPLOY_PATH`, `GHCR_TOKEN`). Nenhuma senha está no código.
+- A espera pelo healthcheck tenta até 30 vezes, a cada 10 segundos. Se o container não ficar saudável, o job mostra os logs e falha.
+- Staging e produção rodam na mesma VM, em pastas diferentes (`/opt/esg/staging` e `/opt/esg/production`). Cada pasta tem seu `docker-compose.yml` e seu `.env`, então containers, volumes, portas e senhas são separados.
 
-## Banco de Dados (Flyway Migrations)
+| Ambiente | Porta da API | Porta do Oracle |
+|---|---|---|
+| Staging | 8081 | 1522 |
+| Produção | 8080 | 1521 |
 
-| Versão | Arquivo | Descrição |
-|--------|---------|-----------|
-| V1 | V1__create_tables.sql | Criação das tabelas |
-| V2 | V2__seed_data.sql | Dados iniciais |
+## Containerização
 
----
+### Dockerfile
 
-## Estrutura do Projeto
+```dockerfile
+# Stage 1: Build
+FROM maven:3-eclipse-temurin-24 AS build
+WORKDIR /app
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+COPY src ./src
+RUN mvn clean package -DskipTests
 
+# Stage 2: Runtime
+FROM eclipse-temurin:24-jre-alpine
+WORKDIR /app
+# Aqui eu crio um usuário sem privilégios para a aplicação não rodar como root
+RUN addgroup -S spring && adduser -S spring -G spring
+COPY --from=build /app/target/*.jar app.jar
+USER spring:spring
+EXPOSE 8080
+# Aqui eu limito o uso de memória da JVM a 75% do que o container tem
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
 ```
-src/main/java/com/esg/compliance/
-├── controller/      # Endpoints REST
-├── service/         # Regras de negócio
-├── repository/      # Acesso ao banco
-├── model/           # Entidades JPA
-├── security/        # JWT e filtros
-├── config/          # Spring Security config
-└── exception/       # Tratamento de erros
-```
+
+### Estratégias usadas
+
+- **Multi-stage build:** a primeira etapa tem Maven e JDK para compilar. A imagem final só leva o JRE e o `.jar`, então fica bem menor.
+- **Cache das dependências:** o `pom.xml` é copiado e as dependências são baixadas antes de copiar o `src`. Se só o código mudar, o Docker reaproveita essa camada e o build é mais rápido.
+- **Usuário sem privilégios:** a aplicação roda com o usuário `spring`, não como root.
+- **Imagem base leve:** `eclipse-temurin:24-jre-alpine`.
+- **Memória da JVM:** `-XX:MaxRAMPercentage=75.0` faz a JVM respeitar o limite do container.
+- **`.dockerignore`:** deixa de fora `target/`, `.git`, `.idea` e `.env`, para o contexto de build ser pequeno e sem segredos.
+- **Configuração por variáveis de ambiente:** URL do banco, usuário, senha e `JWT_SECRET` entram pelo `.env`, nunca dentro da imagem.
+- **Tag por commit:** cada imagem publicada no GHCR leva `sha-<commit>`, o que permite saber qual versão está em cada ambiente.
+
+### docker-compose
+
+O `docker-compose.yml` define dois serviços:
+
+- `oracle`: imagem `gvenzl/oracle-free:23-slim`, com o serviço `FREEPDB1` e o usuário da aplicação criado pelas variáveis `ORACLE_APP_USER` e `ORACLE_APP_PASSWORD`. A porta do Oracle é publicada só em `127.0.0.1`.
+- `app`: a API Spring Boot, que só inicia depois que o Oracle estiver saudável.
+
+Os dois ficam na rede `esg-net`, o banco guarda os dados no volume `oracle-data` e ambos têm healthcheck. A aplicação usa o endpoint `/actuator/health` do Spring Actuator.
+
+## Prints do funcionamento
+
+Os arquivos ficam na pasta `docs/prints/`.
+
+### Execução local com Docker
+
+![docker compose ps local](docs/prints/01-local-compose-ps.png)
+
+![health local](docs/prints/02-local-health.png)
+
+### Pipeline: build e testes
+
+![testes no IntelliJ](docs/prints/03-testes-intellij.png)
+
+![pipeline verde no Actions](docs/prints/04-actions-pipeline.png)
+
+### Imagem publicada no GHCR
+
+![imagem no GHCR](docs/prints/05-ghcr-imagem.png)
+
+### Deploy em staging
+
+![deploy staging](docs/prints/06-deploy-staging.png)
+
+![health staging](docs/prints/07-health-staging.png)
+
+### Deploy em produção
+
+![aprovação da produção](docs/prints/08-aprovacao-producao.png)
+
+![health produção](docs/prints/09-health-producao.png)
+
+### Containers na VM
+
+![docker compose ps na VM](docs/prints/10-vm-compose-ps.png)
+
+## Tecnologias utilizadas
+
+- Java 24 e Spring Boot 3.4.5
+- Spring Security com JWT (jjwt)
+- Spring Data JPA
+- Flyway (migrations)
+- Oracle Database Free 23
+- Spring Boot Actuator (healthcheck)
+- Maven
+- JUnit 5
+- Docker e Docker Compose
+- GitHub Actions
+- GitHub Container Registry (GHCR)
+- Microsoft Azure (VM Ubuntu 24.04)
+
+## Checklist de entrega
+
+- [ ] Arquivo .zip organizado
+- [x] Dockerfile funcional
+- [x] docker-compose.yml
+- [x] Pipeline com build, teste e deploy
+- [ ] README com instruções e prints
+- [ ] Documentação técnica com evidências
+- [x] Deploy em staging e produção
