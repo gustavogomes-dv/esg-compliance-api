@@ -47,7 +47,7 @@ Funcionalidade: API de governança e compliance ambiental
     E o campo "totalCo2" da resposta deve ser 12.5
     Quando envio PUT para "/api/emissoes/{emissao_id}" com JSON:
       """
-      {"quantidadeCo2":10.0,"fonte":"Energia solar","dataRegistro":"2026-01-15","periodoRef":"2026-01","compensado":true,"observacoes":"Compensada"}
+      {"empresa":{"id":{empresa_id}},"quantidadeCo2":10.0,"unidade":"tCO2e","fonte":"Energia solar","dataRegistro":"2026-01-15","periodoRef":"2026-01","compensado":true,"observacoes":"Compensada"}
       """
     Então o status HTTP deve ser 200
     E a resposta deve obedecer ao schema "emissao.json"
@@ -73,7 +73,7 @@ Funcionalidade: API de governança e compliance ambiental
     E a resposta deve obedecer ao schema "licencas.json"
     Quando envio PUT para "/api/licencas/{licenca_id}" com JSON:
       """
-      {"tipo":"Operação atualizada","orgaoEmissor":"IBAMA","dataValidade":"2028-12-31","status":"ATIVA","observacoes":"Renovada"}
+      {"empresa":{"id":{empresa_id}},"numeroLicenca":"BDD-LIC-{nonce}","tipo":"Operação atualizada","orgaoEmissor":"IBAMA","dataEmissao":"2025-01-01","dataValidade":"2028-12-31","status":"ATIVA","observacoes":"Renovada"}
       """
     Então o status HTTP deve ser 200
     E a resposta deve obedecer ao schema "licenca.json"
@@ -96,7 +96,7 @@ Funcionalidade: API de governança e compliance ambiental
     E a resposta deve obedecer ao schema "auditoria.json"
     Quando envio PUT para "/api/auditorias/{auditoria_id}" com JSON:
       """
-      {"titulo":"Auditoria ESG BDD atualizada","tipo":"Ambiental","auditor":"Equipe de qualidade","dataAuditoria":"2026-02-10","resultado":"PARCIALMENTE_CONFORME","score":80,"relatorio":"Plano de ação registrado"}
+      {"empresa":{"id":{empresa_id}},"titulo":"Auditoria ESG BDD atualizada","tipo":"Ambiental","auditor":"Equipe de qualidade","dataAuditoria":"2026-02-10","resultado":"PARCIALMENTE_CONFORME","score":80,"relatorio":"Plano de ação registrado"}
       """
     Então o status HTTP deve ser 200
     E a resposta deve obedecer ao schema "auditoria.json"
