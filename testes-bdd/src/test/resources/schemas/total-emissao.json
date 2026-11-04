@@ -1,0 +1,1 @@
+{"$schema":"http://json-schema.org/draft-04/schema#","type":"object","required":["empresaId","totalCo2","unidade"],"properties":{"empresaId":{"type":"integer"},"totalCo2":{"type":"number","minimum":0},"unidade":{"enum":["tCO2e"]}},"additionalProperties":false}

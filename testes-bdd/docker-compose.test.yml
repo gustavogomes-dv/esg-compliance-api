@@ -1,0 +1,16 @@
+services:
+  bdd:
+    build:
+      context: ./testes-bdd
+    environment:
+      ESG_API_URL: http://app:8080
+      ESG_ADMIN_EMAIL: ${ESG_ADMIN_EMAIL:-admin@esg.com}
+      ESG_ADMIN_PASSWORD: ${ESG_ADMIN_PASSWORD:-admin123}
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - esg-net
+    volumes:
+      - ./testes-bdd/target:/work/target
+    restart: "no"

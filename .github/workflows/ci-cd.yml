@@ -38,9 +38,76 @@ jobs:
       - name: Build e testes
         run: mvn -B verify
 
+  # Etapa 1b: sobe um Oracle efêmero, inicia a API e executa os cenários BDD por HTTP
+  bdd-api-tests:
+    runs-on: ubuntu-latest
+    services:
+      oracle:
+        image: gvenzl/oracle-free:23-slim
+        env:
+          ORACLE_PASSWORD: OracleAdmin123
+          APP_USER: esg
+          APP_USER_PASSWORD: esg_local_password
+        ports:
+          - 1521:1521
+        options: >-
+          --health-cmd "healthcheck.sh"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 30
+          --health-start-period 120s
+    steps:
+      - name: Baixar codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 24
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '24'
+          cache: maven
+
+      - name: Construir API
+        run: mvn -B -DskipTests package
+
+      - name: Iniciar API e aguardar healthcheck
+        env:
+          SPRING_DATASOURCE_URL: jdbc:oracle:thin:@//localhost:1521/FREEPDB1
+          SPRING_DATASOURCE_USERNAME: esg
+          SPRING_DATASOURCE_PASSWORD: esg_local_password
+          JWT_SECRET: bdd-ci-secret-key-with-at-least-32-characters
+        run: |
+          nohup java -jar target/compliance-0.0.1-SNAPSHOT.jar > /tmp/esg-api.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl --silent --fail http://localhost:8080/actuator/health; then
+              echo
+              exit 0
+            fi
+            sleep 10
+          done
+          cat /tmp/esg-api.log
+          exit 1
+
+      - name: Executar testes BDD de API
+        env:
+          ESG_API_URL: http://localhost:8080
+          ESG_ADMIN_EMAIL: admin@esg.com
+          ESG_ADMIN_PASSWORD: admin123
+        run: mvn -B -f testes-bdd/pom.xml test
+
+      - name: Publicar relatorios BDD
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-testes-bdd
+          path: |
+            testes-bdd/target/cucumber-reports/cucumber.xml
+            testes-bdd/target/surefire-reports/
+          if-no-files-found: warn
+
   # Etapa 2: construo a imagem Docker e publico no GitHub Container Registry
   image:
-    needs: build-test
+    needs: [build-test, bdd-api-tests]
     # Aqui eu so publico imagem quando e push (nao em pull request)
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest

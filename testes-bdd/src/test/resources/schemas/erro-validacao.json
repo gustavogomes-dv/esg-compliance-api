@@ -1,0 +1,1 @@
+{"$schema":"http://json-schema.org/draft-04/schema#","type":"object","required":["status","message","timestamp","errors"],"properties":{"status":{"enum":[400]},"message":{"type":"string"},"timestamp":{"type":"string"},"errors":{"type":"object","minProperties":1,"additionalProperties":{"type":"string"}}},"additionalProperties":true}

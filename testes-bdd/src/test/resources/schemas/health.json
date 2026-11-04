@@ -1,0 +1,1 @@
+{"$schema":"http://json-schema.org/draft-04/schema#","type":"object","required":["status"],"properties":{"status":{"enum":["UP","DOWN","OUT_OF_SERVICE","UNKNOWN"]}},"additionalProperties":true}

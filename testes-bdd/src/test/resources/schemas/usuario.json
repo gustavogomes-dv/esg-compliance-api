@@ -1,0 +1,1 @@
+{"$schema":"http://json-schema.org/draft-04/schema#","type":"object","required":["id","nome","email","senha","role","ativo","criadoEm"],"properties":{"id":{"type":"integer"},"nome":{"type":"string"},"email":{"type":"string","format":"email"},"senha":{"type":"string"},"role":{"type":"string"},"ativo":{"type":"boolean"},"criadoEm":{"type":"string"}},"additionalProperties":true}
