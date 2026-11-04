@@ -40,7 +40,7 @@ public class Auditoria {
     @NotBlank(message = "Resultado é obrigatório")
     @Pattern(regexp = "CONFORME|NAO_CONFORME|PARCIALMENTE_CONFORME",
              message = "Resultado deve ser: CONFORME, NAO_CONFORME ou PARCIALMENTE_CONFORME")
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 30)
     private String resultado;
 
     @DecimalMin(value = "0.0") @DecimalMax(value = "100.0")
