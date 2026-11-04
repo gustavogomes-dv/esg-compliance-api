@@ -33,12 +33,12 @@ public class ApiHooks {
                 .then().statusCode(200).extract().path("token");
 
         String fixtureCnpj = uniqueCnpj();
-        long companyId = given().contentType("application/json").header("Authorization", "Bearer " + context.token)
+        String companyId = given().contentType("application/json").header("Authorization", "Bearer " + context.token)
                 .body(Map.of("nome", "Empresa fixture " + nonce, "cnpj", fixtureCnpj,
                         "setor", "Serviços ESG", "email", "fixture-" + nonce + "@example.com", "ativa", true))
                 .when().post(context.baseUrl + "/api/empresas")
-                .then().statusCode(201).extract().path("id");
-        context.values.put("empresa_id", Long.toString(companyId));
+                .then().statusCode(201).extract().jsonPath().getString("id");
+        context.values.put("empresa_id", companyId);
     }
 
     @After
