@@ -24,6 +24,7 @@ public class EmissaoCarbonoService {
         return repository.findByEmpresaIdOrderByDataRegistroDesc(empresaId);
     }
 
+    @Transactional(readOnly = true)
     public EmissaoCarbono buscarPorId(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Emissão não encontrada com id: " + id));

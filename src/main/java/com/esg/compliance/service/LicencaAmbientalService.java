@@ -24,6 +24,7 @@ public class LicencaAmbientalService {
         return repository.findByEmpresaId(empresaId);
     }
 
+    @Transactional(readOnly = true)
     public LicencaAmbiental buscarPorId(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Licença não encontrada com id: " + id));

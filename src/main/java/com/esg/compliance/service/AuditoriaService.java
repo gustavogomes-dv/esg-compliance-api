@@ -23,6 +23,7 @@ public class AuditoriaService {
         return repository.findByEmpresaIdOrderByDataAuditoriaDesc(empresaId);
     }
 
+    @Transactional(readOnly = true)
     public Auditoria buscarPorId(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Auditoria não encontrada com id: " + id));
