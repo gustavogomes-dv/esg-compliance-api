@@ -95,6 +95,10 @@ jobs:
           ESG_ADMIN_PASSWORD: admin123
         run: mvn -B -f testes-bdd/pom.xml test
 
+      - name: Exibir log da API quando os testes falharem
+        if: failure()
+        run: cat /tmp/esg-api.log
+
       - name: Publicar relatorios BDD
         if: always()
         uses: actions/upload-artifact@v4
