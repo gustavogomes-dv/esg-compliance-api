@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Cucumber" time="3.503" tests="7" skipped="0" failures="0" errors="0">
+<testcase classname="API de governança e compliance ambiental" name="Criar, consultar, atualizar e remover empresa" time="1.81">
+<system-out><![CDATA[
+Quando envio POST para "/api/empresas" com JSON:............................passed
+Então o status HTTP deve ser 201............................................passed
+E a resposta deve obedecer ao schema "empresa.json".........................passed
+E guardo o campo "id" da resposta como "empresa_criada_id"..................passed
+Quando envio GET para "/api/empresas/{empresa_criada_id}"...................passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "empresa.json".........................passed
+Quando envio PUT para "/api/empresas/{empresa_criada_id}" com JSON:.........passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "empresa.json".........................passed
+Quando envio GET para "/api/empresas".......................................passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "empresas.json"........................passed
+Quando envio DELETE para "/api/empresas/{empresa_criada_id}"................passed
+Então o status HTTP deve ser 204............................................passed
+]]></system-out>
+</testcase>
+<testcase classname="API de governança e compliance ambiental" name="Registrar emissões de carbono e conferir o total por empresa" time="0.33">
+<system-out><![CDATA[
+Quando envio POST para "/api/empresas/{empresa_id}/emissoes" com JSON:......passed
+Então o status HTTP deve ser 201............................................passed
+E a resposta deve obedecer ao schema "emissao.json".........................passed
+E guardo o campo "id" da resposta como "emissao_id".........................passed
+Quando envio GET para "/api/empresas/{empresa_id}/emissoes".................passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "emissoes.json"........................passed
+Quando envio GET para "/api/emissoes/{emissao_id}"..........................passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "emissao.json".........................passed
+Quando envio GET para "/api/empresas/{empresa_id}/emissoes/total"...........passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "total-emissao.json"...................passed
+E o campo "totalCo2" da resposta deve ser 12.5..............................passed
+Quando envio PUT para "/api/emissoes/{emissao_id}" com JSON:................passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "emissao.json".........................passed
+Quando envio DELETE para "/api/emissoes/{emissao_id}".......................passed
+Então o status HTTP deve ser 204............................................passed
+]]></system-out>
+</testcase>
+<testcase classname="API de governança e compliance ambiental" name="Gerenciar licenças ambientais e consultar vencimentos" time="0.392">
+<system-out><![CDATA[
+Quando envio POST para "/api/empresas/{empresa_id}/licencas" com JSON:......passed
+Então o status HTTP deve ser 201............................................passed
+E a resposta deve obedecer ao schema "licenca.json".........................passed
+E guardo o campo "id" da resposta como "licenca_id".........................passed
+Quando envio GET para "/api/empresas/{empresa_id}/licencas".................passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "licencas.json"........................passed
+Quando envio GET para "/api/licencas/{licenca_id}"..........................passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "licenca.json".........................passed
+Quando envio GET para "/api/licencas/vencendo?dias=3650"....................passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "licencas.json"........................passed
+Quando envio PUT para "/api/licencas/{licenca_id}" com JSON:................passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "licenca.json".........................passed
+Quando envio DELETE para "/api/licencas/{licenca_id}".......................passed
+Então o status HTTP deve ser 204............................................passed
+]]></system-out>
+</testcase>
+<testcase classname="API de governança e compliance ambiental" name="Rastrear auditoria ESG de uma empresa" time="0.282">
+<system-out><![CDATA[
+Quando envio POST para "/api/empresas/{empresa_id}/auditorias" com JSON:....passed
+Então o status HTTP deve ser 201............................................passed
+E a resposta deve obedecer ao schema "auditoria.json".......................passed
+E guardo o campo "id" da resposta como "auditoria_id".......................passed
+Quando envio GET para "/api/empresas/{empresa_id}/auditorias"...............passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "auditorias.json"......................passed
+Quando envio GET para "/api/auditorias/{auditoria_id}"......................passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "auditoria.json".......................passed
+Quando envio PUT para "/api/auditorias/{auditoria_id}" com JSON:............passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "auditoria.json".......................passed
+Quando envio DELETE para "/api/auditorias/{auditoria_id}"...................passed
+Então o status HTTP deve ser 204............................................passed
+]]></system-out>
+</testcase>
+<testcase classname="API de governança e compliance ambiental" name="Rejeitar emissões inválidas e acessos sem autenticação" time="0.189">
+<system-out><![CDATA[
+Quando envio POST sem autenticação para "/api/empresas/{empresa_id}/emissoes" com JSON:.passed
+Então o status HTTP deve ser 403............................................passed
+Quando envio POST autenticado para "/api/empresas/{empresa_id}/emissoes" com JSON:.passed
+Então o status HTTP deve ser 400............................................passed
+E a resposta deve obedecer ao schema "erro-validacao.json"..................passed
+Quando envio GET para "/api/empresas/99999999"..............................passed
+Então o status HTTP deve ser 404............................................passed
+E a resposta deve obedecer ao schema "erro.json"............................passed
+]]></system-out>
+</testcase>
+<testcase classname="API de governança e compliance ambiental" name="Registrar usuário e autenticar credenciais válidas" time="0.262">
+<system-out><![CDATA[
+Quando envio POST público para "/api/auth/registro" com JSON:...............passed
+Então o status HTTP deve ser 201............................................passed
+E a resposta deve obedecer ao schema "usuario.json".........................passed
+Quando envio POST público para "/api/auth/login" com JSON:..................passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "token.json"...........................passed
+]]></system-out>
+</testcase>
+<testcase classname="API de governança e compliance ambiental" name="Consultar endpoints de saúde e informação da aplicação" time="0.14">
+<system-out><![CDATA[
+Quando envio GET sem autenticação para "/actuator/health"...................passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "health.json"..........................passed
+Quando envio GET para "/actuator/info"......................................passed
+Então o status HTTP deve ser 200............................................passed
+E a resposta deve obedecer ao schema "actuator-info.json"...................passed
+]]></system-out>
+</testcase>
+</testsuite>
