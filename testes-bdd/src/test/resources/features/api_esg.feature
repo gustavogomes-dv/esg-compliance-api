@@ -30,7 +30,7 @@ Funcionalidade: API de governança e compliance ambiental
   Cenário: Registrar emissões de carbono e conferir o total por empresa
     Quando envio POST para "/api/empresas/{empresa_id}/emissoes" com JSON:
       """
-      {"quantidadeCo2":12.5,"unidade":"tCO2e","fonte":"Consumo de energia","dataRegistro":"2026-01-15","periodoRef":"2026-01","compensado":false,"observacoes":"Medição automatizada"}
+      {"empresa":{"id":{empresa_id}},"quantidadeCo2":12.5,"unidade":"tCO2e","fonte":"Consumo de energia","dataRegistro":"2026-01-15","periodoRef":"2026-01","compensado":false,"observacoes":"Medição automatizada"}
       """
     Então o status HTTP deve ser 201
     E a resposta deve obedecer ao schema "emissao.json"
@@ -57,7 +57,7 @@ Funcionalidade: API de governança e compliance ambiental
   Cenário: Gerenciar licenças ambientais e consultar vencimentos
     Quando envio POST para "/api/empresas/{empresa_id}/licencas" com JSON:
       """
-      {"numeroLicenca":"BDD-LIC-{nonce}","tipo":"Operação","orgaoEmissor":"IBAMA","dataEmissao":"2025-01-01","dataValidade":"2027-12-31","status":"ATIVA","observacoes":"Licença de teste"}
+      {"empresa":{"id":{empresa_id}},"numeroLicenca":"BDD-LIC-{nonce}","tipo":"Operação","orgaoEmissor":"IBAMA","dataEmissao":"2025-01-01","dataValidade":"2027-12-31","status":"ATIVA","observacoes":"Licença de teste"}
       """
     Então o status HTTP deve ser 201
     E a resposta deve obedecer ao schema "licenca.json"
@@ -83,7 +83,7 @@ Funcionalidade: API de governança e compliance ambiental
   Cenário: Rastrear auditoria ESG de uma empresa
     Quando envio POST para "/api/empresas/{empresa_id}/auditorias" com JSON:
       """
-      {"titulo":"Auditoria ESG BDD","tipo":"Ambiental","auditor":"Equipe de qualidade","dataAuditoria":"2026-02-10","resultado":"CONFORME","score":95.5,"relatorio":"Verificação de controles ambientais"}
+      {"empresa":{"id":{empresa_id}},"titulo":"Auditoria ESG BDD","tipo":"Ambiental","auditor":"Equipe de qualidade","dataAuditoria":"2026-02-10","resultado":"CONFORME","score":95.5,"relatorio":"Verificação de controles ambientais"}
       """
     Então o status HTTP deve ser 201
     E a resposta deve obedecer ao schema "auditoria.json"
@@ -108,7 +108,7 @@ Funcionalidade: API de governança e compliance ambiental
       """
       {"quantidadeCo2":-1,"fonte":"","dataRegistro":"2026-01-15","periodoRef":"2026-99"}
       """
-    Então o status HTTP deve ser 401
+    Então o status HTTP deve ser 403
     Quando envio POST autenticado para "/api/empresas/{empresa_id}/emissoes" com JSON:
       """
       {"quantidadeCo2":-1,"fonte":"","dataRegistro":"2026-01-15","periodoRef":"2026-99"}
